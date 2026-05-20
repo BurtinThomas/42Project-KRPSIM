@@ -1,0 +1,23 @@
+#
+# factory_finite.krp
+# Finite production chain
+#
+
+wood:20
+iron:10
+coal:8
+
+#
+# Processes
+#
+
+make_handle:(wood:2):(handle:1):5
+smelt_iron:(coal:1):(steel:1):8
+forge_sword:(steel:2;handle:1):(sword:1):12
+sell_sword:(sword:1):(gold:15):4
+
+#
+# Optimization targets
+#
+
+optimize:(gold;time)

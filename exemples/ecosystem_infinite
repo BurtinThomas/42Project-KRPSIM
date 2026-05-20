@@ -1,0 +1,22 @@
+#
+# ecosystem_infinite.krp
+# Self-sustaining ecosystem
+#
+
+energy:5
+water:10
+seed:3
+
+#
+# Processes
+#
+
+grow_tree:(water:1;seed:1):(wood:3;seed:1):6
+burn_wood:(wood:2):(energy:3):4
+pump_water:(energy:1):(water:2):3
+
+#
+# Optimization targets
+#
+
+optimize:(wood;energy)
