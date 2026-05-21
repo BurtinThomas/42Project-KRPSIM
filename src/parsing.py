@@ -7,7 +7,7 @@ _ITEM_LIST = r'[a-zA-Z_][a-zA-Z0-9_]*:\d+(?:;[a-zA-Z_][a-zA-Z0-9_]*:\d+)*'
 PROCESS_PATTERN = re.compile(
     r'^([a-zA-Z_][a-zA-Z0-9_]*)'
     r':\((' + _ITEM_LIST + r')\)'
-    r':\((' + _ITEM_LIST + r')\)'
+    r':(?:\((' + _ITEM_LIST + r')\))?'
     r':(\d+)$'
 )
 
@@ -41,14 +41,14 @@ def parse_configuration(file_content):
             optimizations = m.group(1).split(';')
             continue
 
-        if '(' in line or ';' in line:
+        if line.count(':') >= 3:
             m = PROCESS_PATTERN.match(line)
             if not m:
                 raise ValueError(f"Invalid process line: {line!r}")
             process = Process(
                 m.group(1),
-                parse_quantity_map(m.group(2)),
-                parse_quantity_map(m.group(3)),
+                parse_quantity_map(m.group(2)) if m.group(2) else {},
+                parse_quantity_map(m.group(3)) if m.group(3) else {},
                 int(m.group(4)),
             )
             processes.append(process)
