@@ -1,0 +1,7 @@
+0:do_etagere
+0:do_montant
+0:do_etagere
+0:do_etagere
+0:do_montant
+0:do_fond
+20:do_armoire_ikea

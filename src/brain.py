@@ -1,5 +1,4 @@
 import heapq
-
 from class_file import Stock
 
 
@@ -139,7 +138,7 @@ def choose_process_to_start(executable_processes: list, stocks: dict, running: d
 	return best if score(best) > 0 else None
 
 
-def apply_process(processes: list, stocks: dict, max_cycle: int, optimizations: list, initial_stock_count: int):
+def apply_process(processes: list, stocks: dict, max_cycle: int, optimizations: list):
 	"""Event-driven simulation: schedule finishes in a min-heap and greedily start processes."""
 	current_time = 0
 	event_heap = []  # (finish_time, seq, process_name)
@@ -188,12 +187,4 @@ def apply_process(processes: list, stocks: dict, max_cycle: int, optimizations: 
 		current_time = finish
 		proc = processes_by_name[pname]
 		produce_results_internal(stocks, proc.results)
-
-	print(f"Nice file! {len(processes)} processes, {initial_stock_count} stocks, {len(optimizations)} to optimize")
-	print("Main walk")
-	for line in execution_log:
-		print(line)
-	print(f"no more process doable at time {current_time}")
-	print("Stock :")
-	for name in sorted(stocks):
-		print(f"{name}=> {stocks[name].quantite}")
+	return(stocks, processes, execution_log, current_time)

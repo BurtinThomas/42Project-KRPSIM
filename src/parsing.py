@@ -1,17 +1,27 @@
 import re
 from class_file import Stock, Process
 
+STOCK_PATTERN = re.compile(r'^([a-zA-Z_][a-zA-Z0-9_]*):(\d+)$')
+
+_ITEM_LIST = r'[a-zA-Z_][a-zA-Z0-9_]*:\d+(?:;[a-zA-Z_][a-zA-Z0-9_]*:\d+)*'
+PROCESS_PATTERN = re.compile(
+    r'^([a-zA-Z_][a-zA-Z0-9_]*)'
+    r':\((' + _ITEM_LIST + r')\)'
+    r':\((' + _ITEM_LIST + r')\)'
+    r':(\d+)$'
+)
+
+_OPT_ITEM = r'[a-zA-Z_][a-zA-Z0-9_]*'
+OPTIMIZE_PATTERN = re.compile(
+    r'^optimize:\((' + _OPT_ITEM + r'(?:;' + _OPT_ITEM + r')*)\)$'
+)
+
+
 def parse_quantity_map(text):
     values = {}
-    text = text.strip()
-    if not text:
-        return values
     for chunk in text.split(';'):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
         name, qty = chunk.split(':', 1)
-        values[name.strip()] = int(qty.strip())
+        values[name] = int(qty)
     return values
 
 
@@ -23,33 +33,33 @@ def parse_configuration(file_content):
         line = raw_line.strip()
         if not line or line.startswith('#'):
             continue
-        # OPTIMIZE
-        if line.startswith("optimize:"):
-            rest = line.split(":", 1)[1].strip()
-            if rest.startswith("(") and rest.endswith(")"):
-                inner = rest[1:-1].strip()
-                if inner:
-                    optimizations = [x.strip() for x in inner.split(';') if x.strip()]
+
+        if line.startswith('optimize:'):
+            m = OPTIMIZE_PATTERN.match(line)
+            if not m:
+                raise ValueError(f"Invalid optimize line: {line!r}")
+            optimizations = m.group(1).split(';')
             continue
-        # STOCK
-        if '(' not in line:
-            name, qty = line.split(':', 1)
-            stocks[name.strip()] = Stock(name.strip(), int(qty.strip()))
+
+        if '(' in line or ';' in line:
+            m = PROCESS_PATTERN.match(line)
+            if not m:
+                raise ValueError(f"Invalid process line: {line!r}")
+            process = Process(
+                m.group(1),
+                parse_quantity_map(m.group(2)),
+                parse_quantity_map(m.group(3)),
+                int(m.group(4)),
+            )
+            processes.append(process)
             continue
-        # PROCESS
-        match = re.match(r'^([^:]+):\((.*?)\)(?::\((.*?)\))?(?::(.*))?$', line)
-        if not match:
-            raise ValueError(f"Invalid process line: {line}")
-        name = match.group(1).strip()
-        needs_text = match.group(2)
-        results_text = match.group(3) or ''
-        delay_text = match.group(4) or ''
-        delay_text = delay_text.strip().lstrip(':')
-        process = Process(
-            name,
-            parse_quantity_map(needs_text),
-            parse_quantity_map(results_text),
-            int(delay_text) if delay_text else 0,
-        )
-        processes.append(process)
+
+        m = STOCK_PATTERN.match(line)
+        if not m:
+            raise ValueError(f"Invalid stock line: {line!r}")
+        name = m.group(1)
+        stocks[name] = Stock(name, int(m.group(2)))
+
+    if not stocks or not processes or not optimizations:
+        raise ValueError("Configuration must contain at least one stock, one process, and one optimization.")
     return stocks, processes, optimizations
