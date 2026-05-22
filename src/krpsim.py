@@ -24,8 +24,9 @@ def main():
         print("Stock :")
         for name in sorted(stocks):
             print(f"{name}=> {stocks[name].quantite}")
-
     except Exception as e:
         print(f"Error: {e}")
+        sys.exit(1)
 
-main()
+if __name__ == "__main__":
+    main()
